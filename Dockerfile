@@ -16,7 +16,6 @@ USER appuser
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
-ENV OLLAMA_API_BASE=http://ollama:11434
 
 # Expose the port
 EXPOSE 5000
