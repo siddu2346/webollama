@@ -21,19 +21,13 @@ A web interface for managing Ollama models and generating text using Python Flas
 <summary>Click to view screenshots</summary>
 
 ### Home Page
-![Home Page](https://i.imgur.com/example1.png)
+![Home Page](assets/home.png)
 
 ### Models Page
-![Models Page](https://i.imgur.com/example2.png)
-
-### Chat Interface
-![Chat Interface](https://i.imgur.com/example3.png)
-
-### Generation with Parameters
-![Generation with Parameters](https://i.imgur.com/example4.png)
+![Models Page](assets/models.png)
 
 ### Version & Updates
-![Version and Updates](https://i.imgur.com/example5.png)
+![Version and Updates](assets/version-update.png)
 
 </details>
 
