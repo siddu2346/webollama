@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import base64
 from flask_wtf.csrf import CSRFProtect
+import markdown
 
 load_dotenv()
 
@@ -467,8 +468,8 @@ def version():
     latest_version = "Unknown"
     update_available = False
     release_date = "Unknown"
-    changelog_data = None
-    
+    changelog_markdown = None
+
     # Get current version from Ollama API
     try:
         response = requests.get(f"{OLLAMA_API_URL}/version")
@@ -479,7 +480,7 @@ def version():
             flash(f"Error fetching version: {response.status_code}", "danger")
     except Exception as e:
         flash(f"Error connecting to Ollama API: {str(e)}", "danger")
-    
+
     # Get latest version from GitHub releases
     try:
         github_response = requests.get("https://api.github.com/repos/ollama/ollama/releases/latest")
@@ -488,7 +489,7 @@ def version():
             latest_version = github_data.get('tag_name', 'Unknown')
             if latest_version.startswith('v'):
                 latest_version = latest_version[1:]  # Remove 'v' prefix if present
-            
+
             # Get release date
             if github_data.get('published_at'):
                 from datetime import datetime
@@ -497,98 +498,45 @@ def version():
                     release_date = published_date.strftime('%B %d, %Y')
                 except:
                     release_date = "Unknown"
-            
-            # Parse changelog from release body
+
+            # Get raw markdown from release body and convert to HTML
             if github_data.get('body'):
-                changelog_data = parse_github_release_notes(github_data['body'])
-            
+                try:
+                    # Convert markdown to HTML
+                    changelog_markdown = markdown.markdown(github_data['body'], extensions=['extra'])
+                except Exception:
+                    # If conversion fails, use the raw markdown
+                    changelog_markdown = github_data['body']
+
             # Check if update is available
             if current_version != "Unknown" and latest_version != "Unknown":
                 current_parts = current_version.split('.')
                 latest_parts = latest_version.split('.')
-                
+
                 # Compare version numbers
                 for i in range(max(len(current_parts), len(latest_parts))):
                     current_num = int(current_parts[i]) if i < len(current_parts) else 0
                     latest_num = int(latest_parts[i]) if i < len(latest_parts) else 0
-                    
+
                     if latest_num > current_num:
                         update_available = True
                         break
                     elif current_num > latest_num:
                         break
-                    
+
         else:
             flash(f"Error fetching latest version from GitHub: {github_response.status_code}", "info")
     except Exception as e:
         flash(f"Error connecting to GitHub API: {str(e)}", "info")
-    
-    return render_template('version.html', 
-                          version=current_version, 
+
+    return render_template('version.html',
+                          version=current_version,
                           latest_version=latest_version,
                           update_available=update_available,
                           release_date=release_date,
-                          changelog=changelog_data)
+                          changelog_markdown=changelog_markdown)
 
-def parse_github_release_notes(release_notes):
-    """Parse GitHub release notes into structured changelog data"""
-    if not release_notes:
-        return None
-    
-    changelog = {
-        'added': [],
-        'improved': [],
-        'fixed': []
-    }
-    
-    # Simple parsing logic - can be enhanced for more complex release notes
-    lines = release_notes.split('\n')
-    current_section = None
-    
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-            
-        # Check for sections (common patterns in GitHub release notes)
-        lower_line = line.lower()
-        if any(keyword in lower_line for keyword in ['new', 'added', 'feature']):
-            current_section = 'added'
-            continue
-        elif any(keyword in lower_line for keyword in ['improved', 'enhancement', 'better']):
-            current_section = 'improved'
-            continue
-        elif any(keyword in lower_line for keyword in ['fixed', 'bug', 'issue', 'resolved']):
-            current_section = 'fixed'
-            continue
-            
-        # Add items to the appropriate section if we're in a section
-        if current_section and line.startswith(('- ', '* ')):
-            item_text = line[2:].strip()
-            if item_text:
-                changelog[current_section].append(item_text)
-    
-    # If we didn't find any categorized items, try to categorize based on content
-    if not any(changelog.values()):
-        for line in lines:
-            line = line.strip()
-            if line.startswith(('- ', '* ')):
-                item_text = line[2:].strip()
-                if not item_text:
-                    continue
-                    
-                lower_item = item_text.lower()
-                if any(keyword in lower_item for keyword in ['new', 'add', 'feature', 'support']):
-                    changelog['added'].append(item_text)
-                elif any(keyword in lower_item for keyword in ['improve', 'enhance', 'better', 'performance', 'optimization']):
-                    changelog['improved'].append(item_text)
-                elif any(keyword in lower_item for keyword in ['fix', 'bug', 'issue', 'crash', 'error']):
-                    changelog['fixed'].append(item_text)
-                else:
-                    # Default to "added" if we can't categorize
-                    changelog['added'].append(item_text)
-    
-    return changelog
+# The parse_github_release_notes function is no longer used since we're displaying raw markdown
 
 @app.route('/api/check-updates')
 def check_updates():

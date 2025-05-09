@@ -9,53 +9,100 @@
         padding: 0.4rem 0.8rem;
         border-radius: 6px;
     }
-    
+
     .changelog-item {
         border-left: 3px solid #dee2e6;
         padding-left: 1rem;
         position: relative;
         margin-bottom: 0.75rem;
     }
-    
-    .changelog-item::before {
-        content: '';
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #dee2e6;
-        left: -6.5px;
-        top: 6px;
-    }
-    
-    .changelog-item.changelog-new::before {
-        background: var(--success-color);
-    }
-    
-    .changelog-item.changelog-improved::before {
-        background: var(--info-color);
-    }
-    
-    .changelog-item.changelog-fixed::before {
-        background: var(--warning-color);
-    }
-    
+
     .ollama-logo {
         max-height: 100px;
         opacity: 0.9;
     }
-    
+
     /* Modal fixes */
     .modal-backdrop {
         z-index: 1040 !important;
     }
-    
+
     .modal {
         z-index: 1050 !important;
     }
-    
+
     .modal-dialog {
         z-index: 1060 !important;
+    }
+
+    /* Markdown content styling */
+    .markdown-content {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+    }
+
+    .markdown-content h1,
+    .markdown-content h2,
+    .markdown-content h3,
+    .markdown-content h4,
+    .markdown-content h5,
+    .markdown-content h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .markdown-content h2 {
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid #eaecef;
+    }
+
+    .markdown-content p,
+    .markdown-content ul,
+    .markdown-content ol {
+        margin-bottom: 1rem;
+    }
+
+    .markdown-content ul,
+    .markdown-content ol {
+        padding-left: 2rem;
+    }
+
+    .markdown-content ul li,
+    .markdown-content ol li {
+        margin-bottom: 0.25rem;
+    }
+
+    .markdown-content code {
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        background-color: rgba(27, 31, 35, 0.05);
+        border-radius: 3px;
+    }
+
+    .markdown-content pre {
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        background-color: #f6f8fa;
+        border-radius: 3px;
+    }
+
+    .markdown-content blockquote {
+        padding: 0 1em;
+        color: #6a737d;
+        border-left: 0.25em solid #dfe2e5;
+    }
+
+    .markdown-content a {
+        color: #0366d6;
+        text-decoration: none;
+    }
+
+    .markdown-content a:hover {
+        text-decoration: underline;
     }
 </style>
 {% endblock %}
@@ -162,59 +209,13 @@
                 <div class="card-body">
                     <h5 class="card-title mb-3"><i class="fas fa-history me-2"></i> Latest Changes</h5>
                     
-                    <div class="changelog-container">
-                        {% if changelog and changelog.added %}
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <h6 class="mb-0 me-2">New Features</h6>
-                                <span class="badge bg-success">Added</span>
-                            </div>
-                            <div class="ps-2 mt-2">
-                                {% for item in changelog.added %}
-                                <div class="changelog-item changelog-new py-1">
-                                    <p class="mb-0">{{ item }}</p>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        {% if changelog and changelog.improved %}
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <h6 class="mb-0 me-2">Improvements</h6>
-                                <span class="badge bg-info">Improved</span>
-                            </div>
-                            <div class="ps-2 mt-2">
-                                {% for item in changelog.improved %}
-                                <div class="changelog-item changelog-improved py-1">
-                                    <p class="mb-0">{{ item }}</p>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        {% if changelog and changelog.fixed %}
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <h6 class="mb-0 me-2">Bug Fixes</h6>
-                                <span class="badge bg-warning">Fixed</span>
-                            </div>
-                            <div class="ps-2 mt-2">
-                                {% for item in changelog.fixed %}
-                                <div class="changelog-item changelog-fixed py-1">
-                                    <p class="mb-0">{{ item }}</p>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        {% if not changelog or (not changelog.added and not changelog.improved and not changelog.fixed) %}
+                    <div class="changelog-container markdown-content">
+                        {% if changelog_markdown %}
+                        {{ changelog_markdown|safe }}
+                        {% else %}
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            Unable to parse the changelog from GitHub. View full changelog on GitHub for detailed information.
+                            Unable to get changelog information from GitHub. View full changelog on GitHub for detailed information.
                         </div>
                         {% endif %}
                     </div>
