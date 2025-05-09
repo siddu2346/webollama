@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - Models{% endblock %}
+
+{% block extra_css %}
+<style>
+    #deleteConfirmModal {
+        z-index: 2000 !important;
+        position: absolute !important;
+    }
+    .modal-backdrop {
+        display: none !important;
+    }
+    
+    /* Ensure the modal content is visible */
+    .modal-content {
+        box-shadow: 0 5px 15px rgba(0,0,0,.5);
+        background-color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Handle delete button clicks
+        document.querySelectorAll('.delete-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const modelName = this.getAttribute('data-model-name');
+                const modelId = this.getAttribute('data-model-id');
+                
+                // Set the model name in the modal
+                const modelNameEl = document.getElementById('modelNameToDelete');
+                if (modelNameEl) {
+                    modelNameEl.textContent = modelName;
+                }
+                
+                // Set the form action
+                const formEl = document.getElementById('deleteModelForm');
+                if (formEl) {
+                    formEl.action = '/models/delete/' + encodeURIComponent(modelName);
+                }
+                
+                // Show the modal
+                const modalEl = document.getElementById('deleteConfirmModal');
+                if (modalEl) {
+                    // Create modal with options for Bootstrap 5
+                    const deleteModal = new bootstrap.Modal(modalEl, {
+                        backdrop: false
+                    });
+                    deleteModal.show();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the model <strong id="modelNameToDelete"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteModelForm" action="" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Local Models</h1>
+            <div>
+                <a href="/create" class="btn btn-primary me-2">
+                    <i class="fas fa-plus-circle me-2"></i> Create Model
+                </a>
+                <a href="/pull" class="btn btn-primary">
+                    <i class="fas fa-download me-2"></i> Pull Model
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">Models available on this server</p>
+    </div>
+
+    {% if models %}
+    <div class="mb-3">
+        <div class="d-flex justify-content-end align-items-center">
+            <div class="me-2 text-muted small">Sort by:</div>
+            <div class="btn-group">
+                <a href="{{ url_for('models', sort='name', order='asc' if sort_by != 'name' or sort_order == 'desc' else 'desc') }}" 
+                   class="btn btn-sm {{ 'btn-primary' if sort_by == 'name' else 'btn-outline-primary' }}">
+                    Name
+                    {% if sort_by == 'name' %}
+                        <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1"></i>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('models', sort='size', order='asc' if sort_by != 'size' or sort_order == 'desc' else 'desc') }}" 
+                   class="btn btn-sm {{ 'btn-primary' if sort_by == 'size' else 'btn-outline-primary' }}">
+                    Size
+                    {% if sort_by == 'size' %}
+                        <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1"></i>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('models', sort='modified', order='asc' if sort_by != 'modified' or sort_order == 'desc' else 'desc') }}" 
+                   class="btn btn-sm {{ 'btn-primary' if sort_by == 'modified' else 'btn-outline-primary' }}">
+                    Modified
+                    {% if sort_by == 'modified' %}
+                        <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1"></i>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>
+                                Name
+                                {% if sort_by == 'name' %}
+                                    <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1 text-primary"></i>
+                                {% endif %}
+                            </th>
+                            <th>
+                                Size
+                                {% if sort_by == 'size' %}
+                                    <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1 text-primary"></i>
+                                {% endif %}
+                            </th>
+                            <th>Parameter Size</th>
+                            <th>Quantization</th>
+                            <th>
+                                Modified
+                                {% if sort_by == 'modified' %}
+                                    <i class="fas fa-sort-{{ 'down' if sort_order == 'asc' else 'up' }} ms-1 text-primary"></i>
+                                {% endif %}
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model in models %}
+                        <tr>
+                            <td>
+                                <a href="/models/{{ model.name|urlencode }}" class="text-decoration-none">{{ model.name }}</a>
+                            </td>
+                            <td>{{ (model.size / (1024*1024))|round(1) }} MB</td>
+                            <td>{{ model.details.parameter_size if model.details.parameter_size else 'N/A' }}</td>
+                            <td>{{ model.details.quantization_level if model.details.quantization_level else 'N/A' }}</td>
+                            <td data-bs-toggle="tooltip" title="{{ model.modified_at|replace('T', ' ')|replace('Z', '')|truncate(19, True, '') }}">
+                                {{ model.modified_ago }}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <a href="/models/{{ model.name|urlencode }}" class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="tooltip" title="View details">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a href="/models/update/{{ model.name|urlencode }}" class="btn btn-sm btn-outline-success me-2" data-bs-toggle="tooltip" title="Update model">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-model-id="{{ loop.index }}" data-model-name="{{ model.name }}" data-bs-toggle="tooltip" title="Delete model">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No models found. Pull a model from the Ollama library to get started.
+            </div>
+            <a href="/pull" class="btn btn-primary">
+                <i class="fas fa-download me-2"></i> Pull Model
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

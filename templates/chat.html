@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        background-color: #f8f9fa;
+        margin-bottom: 15px;
+    }
+    .chat-input {
+        display: flex;
+    }
+    .chat-input textarea {
+        flex: 1;
+        resize: none;
+        border-radius: 0.25rem 0 0 0.25rem;
+    }
+    .chat-input button {
+        border-radius: 0 0.25rem 0.25rem 0;
+    }
+    .message {
+        margin-bottom: 15px;
+        max-width: 85%;
+        clear: both;
+    }
+    .message-user {
+        float: right;
+        background-color: #d1ecf1;
+        border-radius: 15px 15px 0 15px;
+    }
+    .message-assistant {
+        float: left;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 15px 15px 15px 0;
+    }
+    .message-content {
+        padding: 10px 15px;
+    }
+    .message-role {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    .message p:last-child {
+        margin-bottom: 0;
+    }
+    .loader {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: #007bff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .streaming-content {
+        position: relative;
+    }
+    .cursor {
+        display: inline-block;
+        width: 8px;
+        height: 16px;
+        background-color: #007bff;
+        margin-left: 2px;
+        vertical-align: middle;
+        animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1>Chat with Ollama</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Model Selection</h5>
+                    <div class="mb-3">
+                        <label for="model-select" class="form-label">Choose a model</label>
+                        <select class="form-select" id="model-select">
+                            <option value="" disabled selected>Select a model</option>
+                            {% for model in models %}
+                            <option value="{{ model.name }}" {% if request.args.get('model') == model.name %}selected{% endif %}>{{ model.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-secondary" id="clear-chat">
+                            <i class="fas fa-broom me-2"></i> Clear Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-9">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be added here -->
+                </div>
+                
+                <div class="chat-input">
+                    <textarea class="form-control" id="message-input" rows="2" placeholder="Type your message here..." disabled></textarea>
+                    <button class="btn btn-primary" id="send-button" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modelSelect = document.getElementById('model-select');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const clearChatButton = document.getElementById('clear-chat');
+        
+        let conversation = [];
+        let isProcessing = false;
+        
+        // Enable input when model is selected
+        modelSelect.addEventListener('change', function() {
+            const isModelSelected = !!this.value;
+            messageInput.disabled = !isModelSelected;
+            sendButton.disabled = !isModelSelected;
+            
+            if (isModelSelected) {
+                messageInput.focus();
+            }
+            
+            // Clear chat when changing models
+            chatMessages.innerHTML = '';
+            conversation = [];
+        });
+        
+        // Initialize if model is preselected from URL
+        if (modelSelect.value) {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+        }
+        
+        // Send message when clicking send button
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Send message when pressing Enter (but not with Shift+Enter)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Clear chat
+        clearChatButton.addEventListener('click', function() {
+            chatMessages.innerHTML = '';
+            conversation = [];
+        });
+        
+        function sendMessage() {
+            if (isProcessing) return;
+            
+            const message = messageInput.value.trim();
+            const model = modelSelect.value;
+            
+            if (!message || !model) return;
+            
+            // Add user message to UI
+            addMessage('user', message);
+            
+            // Clear input
+            messageInput.value = '';
+            
+            isProcessing = true;
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Reference to the message element for streaming
+            let assistantMessageEl = null;
+            let assistantMessageContent = '';
+            
+            // Create and add the assistant message container
+            assistantMessageEl = document.createElement('div');
+            assistantMessageEl.className = 'message message-assistant';
+            assistantMessageEl.innerHTML = `
+                <div class="message-content">
+                    <div class="message-role">Assistant</div>
+                    <div class="streaming-content"><div class="cursor"></div></div>
+                </div>
+            `;
+            chatMessages.appendChild(assistantMessageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Use fetch to send the data and handle the stream response
+            const response = fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    model: model,
+                    message: message,
+                    conversation: conversation,
+                    stream: true
+                })
+            })
+            .then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                function processStream() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            return;
+                        }
+                        
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n\n');
+                        
+                        for (let line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.substring(6));
+                                    
+                                    if (data.error) {
+                                        // Handle error
+                                        if (assistantMessageEl && assistantMessageEl.parentNode) {
+                                            chatMessages.removeChild(assistantMessageEl);
+                                        }
+                                        addErrorMessage(data.error);
+                                        resetUI();
+                                        return;
+                                    }
+                                    
+                                    if (data.delta) {
+                                        // Update the streaming content
+                                        assistantMessageContent += data.delta;
+                                        streamingContentEl.innerHTML = marked.parse(assistantMessageContent) + '<div class="cursor"></div>';
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                    
+                                    if (data.done) {
+                                        // Streaming is complete
+                                        
+                                        // Replace the streaming content with the final parsed markdown
+                                        assistantMessageEl.innerHTML = `
+                                            <div class="message-content">
+                                                <div class="message-role">Assistant</div>
+                                                ${marked.parse(assistantMessageContent)}
+                                            </div>
+                                        `;
+                                        
+                                        // Update conversation
+                                        conversation = data.conversation;
+                                        
+                                        // Reset UI
+                                        resetUI();
+                                        return;
+                                    }
+                                } catch (e) {
+                                    // Invalid JSON, ignore this line
+                                }
+                            }
+                        }
+                        
+                        return processStream();
+                    });
+                }
+                
+                return processStream();
+            })
+            .catch(error => {
+                if (assistantMessageEl && assistantMessageEl.parentNode) {
+                    chatMessages.removeChild(assistantMessageEl);
+                }
+                addErrorMessage('Error with streaming response: ' + error.message);
+                resetUI();
+            });
+            
+            // Get streaming content container
+            const streamingContentEl = assistantMessageEl.querySelector('.streaming-content');
+            
+            function resetUI() {
+                isProcessing = false;
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+        
+        function addMessage(role, content) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message message-${role}`;
+            
+            // Parse markdown in assistant messages
+            if (role === 'assistant') {
+                content = marked.parse(content);
+            }
+            
+            messageEl.innerHTML = `
+                <div class="message-content">
+                    <div class="message-role">${role === 'user' ? 'You' : 'Assistant'}</div>
+                    ${role === 'assistant' ? content : `<p>${escapeHtml(content)}</p>`}
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function addErrorMessage(error) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'alert alert-danger mt-3';
+            messageEl.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i> ${error}`;
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    });
+</script>
+{% endblock %}

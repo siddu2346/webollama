@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  webollama:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webollama
+    ports:
+      - "5000:5000"
+    environment:
+      - OLLAMA_API_BASE=http://host.docker.internal:11434
+    restart: unless-stopped
+    networks:
+      - webollama-network
+
+networks:
+  webollama-network:
+    name: webollama-network

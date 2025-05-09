@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - Running Models{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="mb-4">
+        <h1>Running Models</h1>
+        <p class="text-muted">Models currently loaded in memory</p>
+    </div>
+
+    {% if models %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Parameter Size</th>
+                    <th>Quantization</th>
+                    <th>Memory Usage</th>
+                    <th>Expires In</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in models %}
+                <tr>
+                    <td>
+                        <a href="/models/{{ model.name|urlencode }}" class="text-decoration-none">
+                            {{ model.name }}
+                        </a>
+                    </td>
+                    <td>{{ model.details.parameter_size if model.details.parameter_size else 'N/A' }}</td>
+                    <td>{{ model.details.quantization_level if model.details.quantization_level else 'N/A' }}</td>
+                    <td>{{ (model.size_vram / (1024*1024*1024))|round(2) }} GB</td>
+                    <td>
+                        {% if model.expires_at %}
+                            {% set expire_time = model.expires_at|replace('T', ' ')|truncate(19, True, '') %}
+                            {% if expire_time == '0001-01-01 00:00:00' %}
+                                <span class="badge bg-secondary">Never</span>
+                            {% else %}
+                                {% if model.expires_in == 'Expired' %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% else %}
+                                    <span class="badge bg-primary">{{ model.expires_in }}</span>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex">
+                            <a href="/chat?model={{ model.name|urlencode }}" class="btn btn-sm btn-outline-primary me-2" title="Chat with this model">
+                                <i class="fas fa-comments"></i>
+                            </a>
+                            <a href="/generate?model={{ model.name|urlencode }}" class="btn btn-sm btn-outline-primary me-2" title="Generate with this model">
+                                <i class="fas fa-magic"></i>
+                            </a>
+                            <form action="/models/unload/{{ model.name|urlencode }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Unload this model">
+                                    <i class="fas fa-eject"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> No models are currently running. Start a chat or generation to load a model.
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-comments"></i> Chat
+                    </h5>
+                    <p class="card-text">Have a conversation with an Ollama model.</p>
+                    <a href="/chat" class="btn btn-primary">Start Chatting</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-magic"></i> Generate
+                    </h5>
+                    <p class="card-text">Generate completions from a prompt.</p>
+                    <a href="/generate" class="btn btn-primary">Generate Text</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full overflow-y-scroll">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Webollama{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ollama.com/public/icon-32x32.png" />
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="https://ollama.com/public/ollama.png" alt="Ollama" height="28">
+                <span class="ms-2">WebOllama</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/about' in request.path %}active{% endif %}" href="/about">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="list-group">
+                    <a href="/" class="list-group-item list-group-item-action {% if request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-home me-2"></i> Home
+                    </a>
+                    <a href="/models" class="list-group-item list-group-item-action {% if '/models' in request.path and '/models/' not in request.path %}active{% endif %}">
+                        <i class="fas fa-cubes me-2"></i> Models
+                    </a>
+                    <a href="/running-models" class="list-group-item list-group-item-action {% if '/running-models' in request.path %}active{% endif %}">
+                        <i class="fas fa-server me-2"></i> Running Models
+                    </a>
+                    <a href="/pull" class="list-group-item list-group-item-action {% if '/pull' in request.path %}active{% endif %}">
+                        <i class="fas fa-download me-2"></i> Pull Model
+                    </a>
+                    <a href="/create" class="list-group-item list-group-item-action {% if '/create' in request.path %}active{% endif %}">
+                        <i class="fas fa-plus-circle me-2"></i> Create Model
+                    </a>
+                    <a href="/chat" class="list-group-item list-group-item-action {% if '/chat' in request.path %}active{% endif %}">
+                        <i class="fas fa-comments me-2"></i> Chat
+                    </a>
+                    <a href="/generate" class="list-group-item list-group-item-action {% if '/generate' in request.path %}active{% endif %}">
+                        <i class="fas fa-magic me-2"></i> Generate
+                    </a>
+                    <a href="/version" class="list-group-item list-group-item-action {% if '/version' in request.path %}active{% endif %}">
+                        <i class="fas fa-code-branch me-2"></i> Ollama Version
+                    </a>
+                    <a href="/help" class="list-group-item list-group-item-action {% if '/help' in request.path %}active{% endif %}">
+                        <i class="fas fa-question-circle me-2"></i> Help & Documentation
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 content-wrapper">
+                <div class="content fade-in">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile sidebar toggle
+        const toggler = document.querySelector('.navbar-toggler');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (toggler && sidebar) {
+            toggler.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+        }
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

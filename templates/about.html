@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - About{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="mb-4 text-center">About WebOllama</h1>
+                    
+                    <div class="text-center mb-4">
+                        <img src="https://ollama.com/public/ollama.png" alt="Ollama" height="80" class="mb-3">
+                    </div>
+                    
+                    <p class="lead text-center mb-4">
+                        A web interface for Ollama providing easy management and interaction with local AI models
+                    </p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-10 offset-md-1">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="h5 mb-3">Created By</h3>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-user-circle fa-3x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="h5 mb-1">Dennis Kruyt</h4>
+                                            <p class="mb-2">Developer & Creator</p>
+                                            <div class="small">
+                                                <a href="https://github.com/dkruyt" target="_blank" class="text-decoration-none me-3">
+                                                    <i class="fab fa-github me-1"></i> GitHub
+                                                </a>
+                                                <a href="https://linkedin.com/in/denniskruyt" target="_blank" class="text-decoration-none">
+                                                    <i class="fab fa-linkedin me-1"></i> LinkedIn
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">About the Project</h3>
+                        <p>
+                            WebOllama is a web interface for <a href="https://ollama.com" target="_blank">Ollama</a>, designed to make it easy
+                            to manage and interact with local AI models without complicated command-line operations.
+                        </p>
+                        <p>
+                            This project aims to bring the power of large language models to everyone by providing a
+                            user-friendly interface that simplifies model management, customization, and interaction.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">Features</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i> Easy model management</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Intuitive chat interface</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Model customization</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i> Direct text generation</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Running model monitoring</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Version tracking and updates</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">Technologies</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary">Python</span>
+                            <span class="badge bg-primary">Flask</span>
+                            <span class="badge bg-primary">Bootstrap</span>
+                            <span class="badge bg-primary">JavaScript</span>
+                            <span class="badge bg-primary">Ollama API</span>
+                            <span class="badge bg-primary">Docker</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">Acknowledgements</h3>
+                        <p>
+                            Special thanks to the <a href="https://ollama.com" target="_blank">Ollama</a> team for creating an incredible tool
+                            that makes local AI models accessible to everyone. WebOllama builds upon their work to provide
+                            a user-friendly interface.
+                        </p>
+                    </div>
+                    
+                    <div class="text-center mt-5">
+                        <p class="text-muted small">
+                            WebOllama is an open-source project. All rights to their respective owners.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

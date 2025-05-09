@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - Home{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title">Welcome to WebOllama</h1>
+                    <p class="card-text">A web interface for managing Ollama models and generating text.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cubes"></i> Models</h5>
+                    <p class="card-text">View, manage, and delete local models.</p>
+                    <a href="/models" class="btn btn-primary">Explore Models</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-download"></i> Pull Models</h5>
+                    <p class="card-text">Download new models from Ollama library.</p>
+                    <a href="/pull" class="btn btn-primary">Pull Models</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-server"></i> Running Models</h5>
+                    <p class="card-text">View models currently loaded in memory.</p>
+                    <a href="/running-models" class="btn btn-primary">View Running Models</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-comments"></i> Chat</h5>
+                    <p class="card-text">Have a conversation with an Ollama model.</p>
+                    <a href="/chat" class="btn btn-primary">Start Chatting</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-magic"></i> Generate</h5>
+                    <p class="card-text">Generate completions from a prompt.</p>
+                    <a href="/generate" class="btn btn-primary">Generate Text</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-code-branch"></i> Ollama Version</h5>
+                    {% if version != "Unknown" %}
+                    <p class="card-text">
+                        <span class="status-indicator status-ok align-middle"></span>
+                        <span class="align-middle">v{{ version }} is running</span>
+                    </p>
+                    <a href="/version" class="btn btn-primary">Version Details</a>
+                    {% else %}
+                    <p class="card-text">
+                        <span class="status-indicator status-error align-middle"></span>
+                        <span class="align-middle text-danger">Disconnected</span>
+                    </p>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <small><i class="fas fa-exclamation-triangle me-1"></i> Please ensure Ollama is running</small>
+                    </div>
+                    <a href="/version" class="btn btn-primary disabled">Version Details</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}WebOllama - Ollama Version{% endblock %}
+
+{% block extra_css %}
+<style>
+    .version-badge {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+    }
+    
+    .changelog-item {
+        border-left: 3px solid #dee2e6;
+        padding-left: 1rem;
+        position: relative;
+        margin-bottom: 0.75rem;
+    }
+    
+    .changelog-item::before {
+        content: '';
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #dee2e6;
+        left: -6.5px;
+        top: 6px;
+    }
+    
+    .changelog-item.changelog-new::before {
+        background: var(--success-color);
+    }
+    
+    .changelog-item.changelog-improved::before {
+        background: var(--info-color);
+    }
+    
+    .changelog-item.changelog-fixed::before {
+        background: var(--warning-color);
+    }
+    
+    .ollama-logo {
+        max-height: 100px;
+        opacity: 0.9;
+    }
+    
+    /* Modal fixes */
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    
+    .modal {
+        z-index: 1050 !important;
+    }
+    
+    .modal-dialog {
+        z-index: 1060 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Ollama Version</h1>
+        </div>
+    </div>
+
+    {% if version != "Unknown" %}
+    <div class="row">
+        <!-- Version Status Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="card-title mb-0"><i class="fas fa-code-branch me-2"></i> Version Status</h5>
+                        {% if update_available %}
+                        <span class="badge bg-warning version-badge">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Update Available
+                        </span>
+                        {% else %}
+                        <span class="badge bg-success version-badge">
+                            <i class="fas fa-check-circle me-1"></i> Up to Date
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-1 fw-bold">Ollama v{{ version }}</h5>
+                            <p class="text-muted mb-0">Current installed version</p>
+                        </div>
+                    </div>
+                    
+                    {% if latest_version != "Unknown" %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-1">Latest version: v{{ latest_version }}</h5>
+                            <p class="text-muted mb-0">Released on {{ release_date }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="progress mb-2" style="height: 8px;">
+                            {% if update_available %}
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 70%" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {% if update_available %}
+                            Your version is behind the latest release
+                            {% else %}
+                            You're running the latest version
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex">
+                        <button type="button" class="btn btn-outline-primary me-2" id="check-updates-btn">
+                            <i class="fas fa-sync-alt me-1"></i> Check for Updates
+                        </button>
+                        
+                        {% if update_available %}
+                        <a href="https://github.com/ollama/ollama/releases/latest" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-download me-1"></i> Get Update
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ollama Logo Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <img src="https://ollama.com/public/ollama.png" alt="Ollama" class="ollama-logo mb-3">
+                    <h5 class="mb-2">Ollama</h5>
+                    <p class="text-muted mb-2">Run large language models locally</p>
+                    <div class="mt-2">
+                        <a href="https://github.com/ollama/ollama" target="_blank" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="fab fa-github me-1"></i> GitHub
+                        </a>
+                        <a href="https://ollama.com/" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-globe me-1"></i> Website
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Changelog Card -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="fas fa-history me-2"></i> Latest Changes</h5>
+                    
+                    <div class="changelog-container">
+                        {% if changelog and changelog.added %}
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-2">New Features</h6>
+                                <span class="badge bg-success">Added</span>
+                            </div>
+                            <div class="ps-2 mt-2">
+                                {% for item in changelog.added %}
+                                <div class="changelog-item changelog-new py-1">
+                                    <p class="mb-0">{{ item }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if changelog and changelog.improved %}
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-2">Improvements</h6>
+                                <span class="badge bg-info">Improved</span>
+                            </div>
+                            <div class="ps-2 mt-2">
+                                {% for item in changelog.improved %}
+                                <div class="changelog-item changelog-improved py-1">
+                                    <p class="mb-0">{{ item }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if changelog and changelog.fixed %}
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-2">Bug Fixes</h6>
+                                <span class="badge bg-warning">Fixed</span>
+                            </div>
+                            <div class="ps-2 mt-2">
+                                {% for item in changelog.fixed %}
+                                <div class="changelog-item changelog-fixed py-1">
+                                    <p class="mb-0">{{ item }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if not changelog or (not changelog.added and not changelog.improved and not changelog.fixed) %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Unable to parse the changelog from GitHub. View full changelog on GitHub for detailed information.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-3 text-end">
+                        <a href="https://github.com/ollama/ollama/releases" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github me-1"></i> View Full Changelog
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Connection Error Card -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                    <h4>Connection Error</h4>
+                    <p class="text-muted mb-3">Could not connect to Ollama API</p>
+                    <div class="alert alert-danger mx-auto" style="max-width: 500px;">
+                        <small>Please make sure Ollama is running and accessible at: <code>{{ config.OLLAMA_API_BASE }}</code></small>
+                    </div>
+                    <button class="btn btn-primary mt-3" id="retry-connection-btn">
+                        <i class="fas fa-sync-alt me-1"></i> Retry Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if version != "Unknown" %}
+<!-- Update Check Modal -->
+<div class="modal fade" id="updateCheckModal" tabindex="-1" aria-labelledby="updateCheckModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="z-index: 1050;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateCheckModalLabel">Checking for Updates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4" id="update-check-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="update-check-result" style="display: none;">
+                    <div id="update-available-result" style="display: none;">
+                        <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                        <h5>Update Available!</h5>
+                        <p>A new version of Ollama is available: <span id="latest-version-result" class="fw-bold"></span></p>
+                        <div class="mt-3">
+                            <a href="https://github.com/ollama/ollama/releases/latest" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-download me-1"></i> Download Update
+                            </a>
+                        </div>
+                    </div>
+                    <div id="up-to-date-result" style="display: none;">
+                        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                        <h5>You're Up to Date!</h5>
+                        <p>You're running the latest version of Ollama: <span id="current-version-result" class="fw-bold"></span></p>
+                    </div>
+                    <div id="error-result" style="display: none;">
+                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                        <h5>Error Checking for Updates</h5>
+                        <p id="error-message"></p>
+                        <button class="btn btn-primary mt-2" id="retry-update-check-btn">
+                            <i class="fas fa-sync-alt me-1"></i> Retry
+                        </button>
+                    </div>
+                </div>
+                <p id="checking-message">Checking for the latest version of Ollama...</p>
+                <div class="progress mt-3" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            <div class="modal-footer" id="update-modal-footer" style="display: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if version != "Unknown" %}
+        // Handle check for updates button
+        const checkUpdatesBtn = document.getElementById('check-updates-btn');
+        
+        if (checkUpdatesBtn) {
+            checkUpdatesBtn.addEventListener('click', function() {
+                // Show the modal with proper configuration
+                const updateModalElement = document.getElementById('updateCheckModal');
+                const updateModal = new bootstrap.Modal(updateModalElement, {
+                    backdrop: false,
+                    keyboard: false
+                });
+                updateModal.show();
+                
+                // Ensure modal has proper z-index
+                setTimeout(() => {
+                    document.querySelector('.modal-backdrop').style.zIndex = '1040';
+                }, 100);
+                
+                // Elements for updating the modal
+                const spinner = document.getElementById('update-check-spinner');
+                const result = document.getElementById('update-check-result');
+                const checkingMessage = document.getElementById('checking-message');
+                const updateAvailable = document.getElementById('update-available-result');
+                const upToDate = document.getElementById('up-to-date-result');
+                const errorResult = document.getElementById('error-result');
+                const errorMessage = document.getElementById('error-message');
+                const latestVersionResult = document.getElementById('latest-version-result');
+                const currentVersionResult = document.getElementById('current-version-result');
+                const modalFooter = document.getElementById('update-modal-footer');
+                
+                // Real-time check for updates using the API
+                fetch('/api/check-updates')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading state
+                        spinner.style.display = 'none';
+                        checkingMessage.style.display = 'none';
+                        result.style.display = 'block';
+                        modalFooter.style.display = 'block';
+                        
+                        if (data.error) {
+                            // Show error message
+                            errorResult.style.display = 'block';
+                            errorMessage.textContent = data.error;
+                        } else {
+                            // Show results based on update status
+                            if (data.update_available) {
+                                updateAvailable.style.display = 'block';
+                                latestVersionResult.textContent = `v${data.latest_version}`;
+                            } else {
+                                upToDate.style.display = 'block';
+                                currentVersionResult.textContent = `v${data.current_version}`;
+                            }
+                            
+                            // Update the page elements with latest info after a delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        // Show error in modal
+                        spinner.style.display = 'none';
+                        checkingMessage.style.display = 'none';
+                        result.style.display = 'block';
+                        errorResult.style.display = 'block';
+                        errorMessage.textContent = error.message || 'Failed to check for updates';
+                        modalFooter.style.display = 'block';
+                        
+                        // Add retry button functionality
+                        const retryBtn = document.getElementById('retry-update-check-btn');
+                        if (retryBtn) {
+                            retryBtn.addEventListener('click', function() {
+                                window.location.reload();
+                            });
+                        }
+                    });
+            });
+        }
+        
+        // Update instructions button removed as requested
+        
+        // Server uptime tracking removed as requested
+        {% else %}
+        // Handle retry connection button
+        const retryBtn = document.getElementById('retry-connection-btn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', function() {
+                // Reload the page to retry the connection
+                window.location.reload();
+            });
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}
