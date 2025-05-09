@@ -17,9 +17,6 @@ A web interface for managing Ollama models and generating text using Python Flas
 
 ## Screenshots
 
-<details>
-<summary>Click to view screenshots</summary>
-
 ### Home Page
 ![Home Page](assets/home.png)
 
@@ -29,7 +26,7 @@ A web interface for managing Ollama models and generating text using Python Flas
 ### Version & Updates
 ![Version and Updates](assets/version-update.png)
 
-</details>
+
 
 ## Installation
 
