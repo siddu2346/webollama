@@ -67,7 +67,7 @@ echo "OLLAMA_API_BASE=http://localhost:11434" >> .env
 #### Option 1: Connect to local Ollama instance
 
 ```bash
-# Build and run the WebOllama container only
+# Pull and run the WebOllama container only
 docker-compose up -d
 ```
 

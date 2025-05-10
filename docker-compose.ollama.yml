@@ -13,9 +13,10 @@ services:
       - ollama-network
 
   webollama:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: ghcr.io/dkruyt/webollama:latest
     container_name: webollama
     ports:
       - "5000:5000"
