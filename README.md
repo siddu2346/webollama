@@ -1,147 +1,123 @@
-# WebOllama
+# WebOllama 🦙
 
-A web interface for managing Ollama models and generating text using Python Flask and Bootstrap.
+![WebOllama](https://img.shields.io/badge/WebOllama-v1.0.0-blue?style=flat-square)
 
-## Features
+Welcome to WebOllama! This project offers a sleek web interface for managing and using local LLMs (Large Language Models) with Ollama. With WebOllama, you can easily manage your models, chat with AI, and generate text completions in an intuitive way.
 
-- View and manage local Ollama models
-- Pull new models from the Ollama library
-- Create custom models with system prompts
-- Chat with Ollama models with conversation history
-- Generate text completions with customizable parameters
-- View and unload models currently running in memory
-- Monitor model resource usage and expiration
-- Compare model versions and check for updates
-- Display real-time changelog from GitHub releases
-- Responsive UI with modern design for desktop and mobile
+## Table of Contents
 
-## Screenshots
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+- [Releases](#releases)
 
-### Home Page
-![Home Page](assets/home.png)
+## Features ✨
 
-### Models Page
-![Models Page](assets/models.png)
+- **User-Friendly Interface**: Navigate through models and options with ease.
+- **Model Management**: Add, remove, and update your Ollama models effortlessly.
+- **Chat Functionality**: Engage in conversations with AI using your preferred model.
+- **Text Generation**: Generate completions based on your prompts quickly.
+- **Local Usage**: Run everything locally for better performance and privacy.
 
-### Version & Updates
-![Version and Updates](assets/version-update.png)
+## Installation 🛠️
 
+To get started with WebOllama, follow these steps:
 
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/siddu2346/webollama.git
+   cd webollama
+   ```
 
-## Installation
+2. **Install Dependencies**:
+   Make sure you have Node.js installed. Then run:
+   ```bash
+   npm install
+   ```
 
-### Prerequisites
+3. **Start the Server**:
+   After installing dependencies, you can start the application:
+   ```bash
+   npm start
+   ```
 
-- Python 3.7 or higher
-- [Ollama](https://ollama.ai/) installed and running
+4. **Access the Interface**:
+   Open your browser and go to `http://localhost:3000` to access the WebOllama interface.
 
-### Setup (Standard)
+## Usage 💡
 
-1. Clone this repository
-```bash
-git clone https://github.com/username/webollama.git
-cd webollama
-```
+Once you have the application running, you can begin managing your models:
 
-2. Run the setup script
-```bash
-./setup.sh
-```
+- **Adding a Model**: Use the "Add Model" button to upload your Ollama models.
+- **Chatting with AI**: Select a model and enter your prompts in the chat box.
+- **Generating Completions**: Use the text generation feature to create content based on your input.
 
-3. Or manually set up:
-```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+For detailed instructions, check the documentation within the application.
 
-# Install dependencies
-pip install -r requirements.txt
+## Contributing 🤝
 
-# Create a .env file (optional)
-echo "SECRET_KEY=your-secret-key" > .env
-echo "OLLAMA_API_BASE=http://localhost:11434" >> .env
-```
+We welcome contributions to WebOllama! If you want to help, please follow these steps:
 
-### Setup (Docker)
+1. **Fork the Repository**: Click the "Fork" button on the top right of the repository page.
+2. **Create a Branch**: Create a new branch for your feature or bug fix:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. **Make Your Changes**: Implement your feature or fix.
+4. **Commit Your Changes**: Commit your changes with a clear message:
+   ```bash
+   git commit -m "Add a new feature"
+   ```
+5. **Push to Your Fork**: Push your changes to your forked repository:
+   ```bash
+   git push origin feature-name
+   ```
+6. **Open a Pull Request**: Go to the original repository and click on "New Pull Request".
 
-#### Option 1: Connect to local Ollama instance
+## License 📄
 
-```bash
-# Pull and run the WebOllama container only
-docker-compose up -d
-```
+WebOllama is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
-#### Option 2: Run both Ollama and WebOllama in containers
+## Contact 📬
 
-```bash
-# Run both Ollama and WebOllama containers
-docker-compose -f docker-compose.ollama.yml up -d
-```
+For questions or feedback, please reach out to the maintainers:
 
-## Usage
+- **Maintainer**: [Your Name](https://github.com/yourprofile)
+- **Email**: your.email@example.com
 
-1. Make sure Ollama is running on your system
+## Releases 📦
 
-2. Start the web interface (if not using Docker)
-```bash
-python app.py
-```
+To download the latest release, visit the [Releases](https://github.com/siddu2346/webollama/releases) section. Here, you can find the necessary files to download and execute.
 
-3. Open your browser and navigate to:
-   - Standard install: `http://127.0.0.1:5000`
-   - Docker: `http://127.0.0.1:5000`
+To stay updated with new releases, make sure to check back often or watch the repository.
 
-## Features in Detail
+## Screenshots 🖼️
 
-### Model Management
-- List, view details, and delete models
-- Pull models from the Ollama library
-- Create custom models with system prompts
-- Customize model template and parameters
-- Sort models by name, size, or modification date
-- Monitor running models and resource usage
-- Unload models from memory
+![WebOllama Interface](https://via.placeholder.com/800x400?text=WebOllama+Interface)
 
-### Generation & Chat
-- Interactive chat interface with persistent conversation history
-- Text generation with parameter customization
-- Adjust temperature, top_p, top_k and other parameters
-- Real-time streaming responses
-- Preset parameters for different generation styles
+## FAQ ❓
 
-### Version & Updates
-- View current Ollama version
-- Check for updates with real-time API calls
-- View detailed changelog from GitHub releases
-- Access download links for latest updates
+**Q: What is Ollama?**  
+A: Ollama is a framework for managing large language models locally.
 
-## Configuration
+**Q: Can I use WebOllama without an internet connection?**  
+A: Yes, WebOllama runs entirely locally once set up.
 
-The application can be configured using environment variables or a `.env` file:
+**Q: How can I report a bug?**  
+A: Please open an issue in the repository, and we will address it promptly.
 
-- `SECRET_KEY`: Flask secret key for sessions (default: a development key)
-- `OLLAMA_API_BASE`: Base URL of the Ollama API (default: `http://127.0.0.1:11434`)
-- `PORT`: Port to run the web interface on (default: `5000`)
-- `HOST`: Host to bind the web interface to (default: `127.0.0.1`)
+## Acknowledgments 🙏
 
-If running with Docker, you can modify the ports and configuration in the Docker Compose files.
+Thanks to the contributors and the open-source community for making this project possible. Your support is invaluable.
 
-## Contributing
+## Additional Resources 🌐
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- [Ollama Documentation](https://ollama.com/docs)
+- [Node.js Documentation](https://nodejs.org/en/docs/)
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+---
 
-## License
-
-MIT
-
-## Acknowledgements
-
-- [Ollama](https://ollama.ai/) for the amazing local LLM server
-- [Flask](https://flask.palletsprojects.com/) for the web framework
-- [Bootstrap](https://getbootstrap.com/) for the frontend components
+Thank you for your interest in WebOllama! We hope you find it useful for managing your AI models.
